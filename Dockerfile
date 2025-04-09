@@ -1,7 +1,8 @@
 FROM codercom/code-server:latest
 
-# Install additional tools
-RUN apt-get update && apt-get install -y \
+# Update package lists with retry mechanism and proper setup
+RUN apt-get update -y || (apt-get clean && apt-get update -y) && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git \
     curl \
     wget \
