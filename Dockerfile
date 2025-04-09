@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y \
 
 # Set up workspace directory
 WORKDIR /home/coder/project
-VOLUME /home/coder/project
 
 # Expose the port
 EXPOSE 8080
