@@ -1,24 +1,40 @@
-# Use an official Node.js runtime as a parent image
-FROM node:14
 
-# Set the working directory in the container
-WORKDIR /app
+USER coder
 
-# Copy the package*.json files
-COPY package*.json ./
+# Apply VS Code settings
+COPY deploy-container/settings.json .local/share/code-server/User/settings.json
 
-# Install the dependencies
-RUN npm install
+# Use bash shell
+ENV SHELL=/bin/bash
 
-# Copy the current directory contents into the container at /app
-COPY . .
+# Install unzip + rclone (support for remote filesystem)
+RUN sudo apt-get update && sudo apt-get install unzip -y
+RUN curl https://rclone.org/install.sh | sudo bash
 
-# Make port 8080 available to the world outside this container
-EXPOSE 8080
+# Copy rclone tasks to /tmp, to potentially be used
+COPY deploy-container/rclone-tasks.json /tmp/rclone-tasks.json
 
-# Define environment variable
-ENV PASSWORD=your_password
-ENV HASHED_PASSWORD=your_hashed_password
+# Fix permissions for code-server
+RUN sudo chown -R coder:coder /home/coder/.local
 
-# Run app.js when the container launches
-CMD ["node", "app.js"]
+# You can add custom software and dependencies for your environment below
+# -----------
+
+# Install a VS Code extension:
+# Note: we use a different marketplace than VS Code. See https://github.com/cdr/code-server/blob/main/docs/FAQ.md#differences-compared-to-vs-code
+# RUN code-server --install-extension esbenp.prettier-vscode
+
+# Install apt packages:
+# RUN sudo apt-get install -y ubuntu-make
+
+# Copy files: 
+# COPY deploy-container/myTool /home/coder/myTool
+
+# -----------
+
+# Port
+ENV PORT=8080
+
+# Use our custom entrypoint script first
+COPY deploy-container/entrypoint.sh /usr/bin/deploy-container-entrypoint.sh
+ENTRYPOINT ["/usr/bin/deploy-container-entrypoint.sh"]
